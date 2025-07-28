@@ -1,49 +1,79 @@
-import { getFirestore, doc, getDoc, collection, getDocs, setDoc } from "firebase/firestore";
+// 🔗 Firebase SDK에서 필요한 함수들 가져오기
+import { getFirestore, doc, getDoc, collection, getDocs, setDoc, deleteDoc } from "firebase/firestore";
 import { marked } from 'marked';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebaseConfig.js";
 
+// SweetAlert2 import (CDN 사용 시 이 줄 필요 없음)
+import Swal from 'sweetalert2';
+
+// ✅ 관리자 권한 UID 설정
 const allowedAdmins = ["MhtH5gvH0RMv4yogqP4Tj6ki4Tp1"];
 
+// 🔧 DOM 요소 참조
 const userSelect = document.getElementById("user-select");
 const activitySelect = document.getElementById("activity-select");
 const scenarioSelect = document.getElementById("scenario-select");
 const dateSelect = document.getElementById("date-select");
 const resultsContainer = document.getElementById("results-container");
 
+const scenarioTextArea = document.getElementById("scenario-text");
+const starterSpeaker = document.getElementById("starter-speaker");
+const starterMessage = document.getElementById("starter-message");
+const addStarterBtn = document.getElementById("add-starter-btn");
+
+starterMessage.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();   // 줄바꿈 막기 (textarea가 아니니까 없어도 됨)
+    addStarterBtn.click(); // 버튼 클릭 효과
+  }
+});
+
+const starterList = document.getElementById("starter-conversation-list");
+const saveScenarioBtn = document.getElementById("save-scenario-btn");
+
 let allUsers = [];
 let allScenarios = [];
-let todayString = new Date().toISOString().split("T")[0];
+let starterConversation = [];  // 초기 대화 저장 배열
+let todayString = new Date().toISOString().split("T")[0]; // 오늘 날짜 (YYYY-MM-DD)
+let selectedScenarioId = null; // 시나리오 id 저장
 
-// 🔐 인증 및 초기화
+// 🔐 로그인 확인 및 관리자 권한 검증
 document.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, (user) => {
     if (user && allowedAdmins.includes(user.uid)) {
       initAdminPage();
-      loadScenarioList(); // ✅ 시나리오 목록 불러오기 추가!
+      loadScenarioList(); // 시나리오 목록 불러오기
     } else {
-      alert("접근 권한이 없습니다.");
-      window.location.href = "/";
+      Swal.fire({
+        icon: 'error',
+        title: '접근 불가',
+        text: '접근 권한이 없습니다.'
+      }).then(() => window.location.href = "/");
     }
   });
 });
 
+// 🔄 관리자 페이지 초기화
 async function initAdminPage() {
   await loadAllUsers();
   await loadAllScenarios();
   await populateDate();
+
   userSelect.addEventListener("change", filterAndRender);
   activitySelect.addEventListener("change", filterAndRender);
   scenarioSelect.addEventListener("change", filterAndRender);
   dateSelect.addEventListener("change", async () => {
-    await loadAllUsers();         // 🔄 날짜 바뀌면 사용자 목록 갱신
-    filterAndRender();            // 🔄 결과도 재렌더링
+    await loadAllUsers();
+    filterAndRender();
   });
-  filterAndRender();
+
+  filterAndRender(); // 초기 렌더링
 }
 
+// 🔍 Firestore에서 유저 목록 로드
 async function loadAllUsers() {
-  const selectedDate = dateSelect.value; // 🔹 선택된 날짜 문자열 (예: '2025-07-28')
+  const selectedDate = dateSelect.value;
   const snapshot = await getDocs(collection(db, "lessonPlayResponses"));
   const userMap = new Map();
 
@@ -60,7 +90,7 @@ async function loadAllUsers() {
 
   allUsers = Array.from(userMap.entries()).map(([uid, name]) => ({ uid, name }));
 
-  // 🔄 드롭다운 초기화 후 옵션 다시 채우기
+  // 사용자 드롭다운 구성
   userSelect.innerHTML = "";
   const allOption = document.createElement("option");
   allOption.value = "all";
@@ -75,14 +105,17 @@ async function loadAllUsers() {
   });
 }
 
-
+// 🔍 Firestore에서 시나리오 목록 로드
 async function loadAllScenarios() {
+  allScenarios = [];
+  scenarioSelect.innerHTML = "";
   const snapshot = await getDocs(collection(db, "lessonPlayScenarios"));
   snapshot.forEach(doc => {
     if (doc.id !== "config") {
       allScenarios.push({ id: doc.id, title: doc.data().title || "새로 입력하기" });
     }
   });
+
   allScenarios.forEach(s => {
     const option = document.createElement("option");
     option.value = s.id;
@@ -91,10 +124,12 @@ async function loadAllScenarios() {
   });
 }
 
+// 📅 날짜 입력 기본값 설정
 function populateDate() {
   dateSelect.value = todayString;
 }
 
+// 🔍 선택된 조건으로 결과 필터링 및 렌더링
 async function filterAndRender() {
   const uid = userSelect.value;
   const activity = activitySelect.value;
@@ -134,17 +169,20 @@ async function filterAndRender() {
   }
 }
 
-
+// 🧩 활동 결과 박스 생성
 function renderPageBox(title, data, pageKey) {
   const box = document.createElement("div");
   box.classList.add(pageKey, "page-box");
+
   const pageTitle = document.createElement("div");
   pageTitle.classList.add("page-title");
+
   let formattedTime = "";
   if (data?.createdAt?.toDate) {
     const date = data.createdAt.toDate();
     formattedTime = ` (${date.toLocaleString('ko-KR')})`;
   }
+
   pageTitle.textContent = `${title}${formattedTime}`;
   box.appendChild(pageTitle);
 
@@ -155,26 +193,27 @@ function renderPageBox(title, data, pageKey) {
     conv.style.padding = "10px";
     conv.style.borderRadius = "8px";
     conv.style.marginBottom = "1rem";
+
     const lines = (data.conversation || "").split('\n').map(line =>
       line.startsWith("👩‍🏫") ? `<span class="teacher-line">${line}</span>` : line
     );
+
     conv.innerHTML = lines.join('<br>');
     box.appendChild(conv);
+
     const feedback = document.createElement("div");
     feedback.innerHTML = marked.parse(data.feedback || "(피드백 없음)");
     box.appendChild(feedback);
-  } else if (Array.isArray(data.conversation)) {
-  data.conversation.forEach(entry => {
-    const p = document.createElement("p");
-    p.innerHTML = `<strong>${entry.speaker}:</strong> ${entry.message}`;
-    
-    // ✅ 사용자 입력은 강조 (isUser === true)
-    if (entry.isUser) {
-      p.classList.add("user-highlight");
-    }
 
-    box.appendChild(p);
-  });
+  } else if (Array.isArray(data.conversation)) {
+    data.conversation.forEach(entry => {
+      const p = document.createElement("p");
+      p.innerHTML = `<strong>${entry.speaker}:</strong> ${entry.message}`;
+      if (entry.isUser) {
+        p.classList.add("user-highlight");
+      }
+      box.appendChild(p);
+    });
   } else {
     box.innerHTML += "<p><em>대화 없음</em></p>";
   }
@@ -182,17 +221,7 @@ function renderPageBox(title, data, pageKey) {
   return box;
 }
 
-// ✅ 시나리오 작성 기능 연결
-const scenarioTextArea = document.getElementById("scenario-text");
-const starterSpeaker = document.getElementById("starter-speaker");
-const starterMessage = document.getElementById("starter-message");
-const addStarterBtn = document.getElementById("add-starter-btn");
-const starterList = document.getElementById("starter-conversation-list");
-const saveScenarioBtn = document.getElementById("save-scenario-btn");
-
-let starterConversation = [];
-
-// 초기 대화 추가
+// ➕ 초기 대화 추가
 addStarterBtn.addEventListener("click", () => {
   const speaker = starterSpeaker.value.trim();
   const message = starterMessage.value.trim();
@@ -206,6 +235,7 @@ addStarterBtn.addEventListener("click", () => {
   starterSpeaker.focus();
 });
 
+// 🔄 초기 대화 리스트 렌더링
 function renderStarterList() {
   starterList.innerHTML = "";
   starterConversation.forEach((entry, idx) => {
@@ -216,22 +246,27 @@ function renderStarterList() {
   });
 }
 
+// ❌ 초기 대화 항목 제거
 window.removeStarter = function(idx) {
   starterConversation.splice(idx, 1);
   renderStarterList();
 };
 
-// 저장 버튼 누르면 Firestore에 저장
+// 💾 시나리오 저장 (새로 저장만 가능)
 saveScenarioBtn.addEventListener("click", async () => {
   const title = document.getElementById("scenario-title").value.trim();
   const text = scenarioTextArea.value.trim();
 
   if (!title || !text) {
-    alert("제목과 시나리오 내용을 모두 입력하세요.");
+    Swal.fire({
+      icon: 'warning',
+      title: '입력 필요',
+      text: '제목과 시나리오 내용을 모두 입력하세요.'
+    });
     return;
   }
 
-  const docId = `scenario_${Date.now()}`;  // 고유 ID 생성
+  const docId = `scenario_${Date.now()}`;  // 새 ID 생성
 
   try {
     await setDoc(doc(db, "lessonPlayScenarios", docId), {
@@ -240,21 +275,38 @@ saveScenarioBtn.addEventListener("click", async () => {
       starterConversation
     });
 
-    alert("✅ 시나리오 저장 완료!");
-    loadScenarioList(); // 저장 후 목록 갱신
+    Swal.fire({
+      icon: 'success',
+      title: '저장 완료',
+      text: '✅ 시나리오가 저장되었습니다!'
+    });
+    selectedScenarioId = null;
+    document.getElementById("update-scenario-btn").disabled = true;
+    document.getElementById("delete-scenario-btn").disabled = true;
+    document.getElementById("scenario-title").value = "";
+    scenarioTextArea.value = "";
+    starterConversation = [];
+    renderStarterList();
+    await loadAllScenarios();
+    await loadScenarioList();
   } catch (err) {
-    console.error("시나리오 저장 실패:", err);
-    alert("❌ 저장 실패. 콘솔을 확인하세요.");
+    console.error("❌ 저장 실패:", err);
+    Swal.fire({
+      icon: 'error',
+      title: '저장 실패',
+      text: '❌ 저장 실패. 콘솔을 확인하세요.'
+    });
   }
 });
 
-//시나리오 저장 함수
+// 📄 시나리오 목록 버튼 생성
 async function loadScenarioList() {
   const listContainer = document.getElementById("scenario-list");
   listContainer.innerHTML = "";
 
   const snapshot = await getDocs(collection(db, "lessonPlayScenarios"));
   snapshot.forEach(docSnap => {
+    if (docSnap.id === "config") return; // 💡 config 제외!
     const data = docSnap.data();
     const button = document.createElement("button");
     button.textContent = data.title || "새로 입력하기";
@@ -265,24 +317,24 @@ async function loadScenarioList() {
       starterConversation = data.starterConversation || [];
       renderStarterList();
       document.getElementById("scenario-title").value = data.title || "";
+      selectedScenarioId = docSnap.id; // ⭐️ 반드시 추가
 
-      
-      // ✅ Firestore에 선택된 시나리오 ID 저장
       try {
         await setDoc(doc(db, "lessonPlayScenarios", "config"), {
-          selectedScenarioId: docSnap.id
+          selectedScenarioId: docSnap.id,
         }, { merge: true });
-        console.log("✅ 선택된 시나리오 ID 저장:", docSnap.id);
+        // 버튼 활성화
+        document.getElementById("update-scenario-btn").disabled = false;
+        document.getElementById("delete-scenario-btn").disabled = false;
       } catch (err) {
         console.error("❌ 선택 ID 저장 실패:", err);
       }
-      
     };
     listContainer.appendChild(button);
   });
 }
 
-// 🔁 시나리오 설정 열기/닫기
+// 🎛️ 시나리오 편집기 열기/닫기 토글
 document.getElementById("toggle-scenario-editor").addEventListener("click", () => {
   const editor = document.querySelector(".scenario-editor");
   const btn = document.getElementById("toggle-scenario-editor");
@@ -296,3 +348,103 @@ document.getElementById("toggle-scenario-editor").addEventListener("click", () =
   }
 });
 
+// 📝 시나리오 수정
+document.getElementById("update-scenario-btn").addEventListener("click", async () => {
+  if (!selectedScenarioId) {
+    Swal.fire({
+      icon: 'info',
+      title: '알림',
+      text: '수정할 시나리오를 먼저 선택하세요!'
+    });
+    return;
+  }
+  const title = document.getElementById("scenario-title").value.trim();
+  const text = scenarioTextArea.value.trim();
+  if (!title || !text) {
+    Swal.fire({
+      icon: 'warning',
+      title: '입력 필요',
+      text: '제목과 시나리오 내용을 모두 입력하세요.'
+    });
+    return;
+  }
+  try {
+    await setDoc(doc(db, "lessonPlayScenarios", selectedScenarioId), {
+      title,
+      scenarioText: text,
+      starterConversation
+    }, { merge: true }); // 기존 문서에 덮어쓰기(갱신)
+    Swal.fire({
+      icon: 'success',
+      title: '수정 완료',
+      text: '✅ 시나리오 수정 완료!'
+    });
+    await loadAllScenarios();
+    await loadScenarioList();
+  } catch (err) {
+    console.error("❌ 수정 실패:", err);
+    Swal.fire({
+      icon: 'error',
+      title: '수정 실패',
+      text: '❌ 수정 실패. 콘솔을 확인하세요.'
+    });
+  }
+});
+
+// 🗑️ 시나리오 삭제
+document.getElementById("delete-scenario-btn").addEventListener("click", async () => {
+  if (!selectedScenarioId) {
+    Swal.fire({
+      icon: 'info',
+      title: '알림',
+      text: '삭제할 시나리오를 먼저 선택하세요!'
+    });
+    return;
+  }
+  const result = await Swal.fire({
+    title: '정말 삭제하시겠습니까?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: '삭제',
+    cancelButtonText: '취소'
+  });
+  if (!result.isConfirmed) return;
+
+  try {
+    await deleteDoc(doc(db, "lessonPlayScenarios", selectedScenarioId));
+    Swal.fire({
+      icon: 'success',
+      title: '삭제 완료',
+      text: '✅ 시나리오 삭제 완료!'
+    });
+    selectedScenarioId = null;
+    document.getElementById("update-scenario-btn").disabled = true;
+    document.getElementById("delete-scenario-btn").disabled = true;
+    document.getElementById("scenario-title").value = "";
+    scenarioTextArea.value = "";
+    starterConversation = [];
+    renderStarterList();
+    await loadAllScenarios();
+    await loadScenarioList();
+  } catch (err) {
+    console.error("❌ 삭제 실패:", err);
+    Swal.fire({
+      icon: 'error',
+      title: '삭제 실패',
+      text: '❌ 삭제 실패. 콘솔을 확인하세요.'
+    });
+  }
+});
+
+//새 시나리오 입력
+document.getElementById("new-scenario-btn").addEventListener("click", () => {
+  // 입력창/변수/리스트 모두 초기화
+  document.getElementById("scenario-title").value = "";
+  document.getElementById("scenario-text").value = "";
+  starterConversation = [];
+  renderStarterList();
+
+  selectedScenarioId = null;
+  document.getElementById("update-scenario-btn").disabled = true;
+  document.getElementById("delete-scenario-btn").disabled = true;
+});
