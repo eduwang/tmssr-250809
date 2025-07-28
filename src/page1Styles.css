@@ -1,0 +1,146 @@
+/* 📄 배경 및 폰트 설정 - indexStyles와 동일하게 맞춤 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to bottom right, #e0f7fa, #b3e5fc);
+}
+
+/* 📦 본문 컨테이너 (입력 폼 포함) */
+.page1-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #ffffffcc;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 🧩 시나리오 박스 */
+.scenario-box {
+  background-color: #e3f2fd;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.scenario-title {
+  margin-top: 0;
+  color: #1976d2;
+}
+
+/* 💬 대화 로그 */
+.conversation-log {
+  border: 1px solid #ccc;
+  background: #ffffff;
+  min-height: 200px;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+/* ✏️ 입력창 */
+.chat-input-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.chat-input-section input {
+  padding: 8px;
+  flex: 1;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+}
+
+/* 🔄 되돌리기 버튼 */
+.undo-btn {
+  background-color: #9e9e9e;
+  padding: 8px 12px;
+}
+
+.undo-btn:hover {
+  background-color: #757575;
+}
+
+/* ✅ 입력 영역 구분 박스 */
+.user-input-box {
+  background-color: #fefefe;
+  padding: 25px;
+  border-radius: 14px;
+  border: 2px dashed #b3e5fc;
+  margin-bottom: 30px;
+}
+
+/* 🔘 버튼 정렬 */
+.button-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* 🔙 돌아가기 버튼 */
+.back-button {
+  background-color: #9e9e9e;
+}
+
+.back-button:hover {
+  background-color: #757575;
+}
+
+/* 🧾 저장된 결과 전체 영역 */
+#saved-results-container {
+  max-width: 100%;
+  margin: 40px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 20px;
+}
+
+/* 🗂️ 저장된 결과 카드 */
+.saved-result {
+  background-color: #e3f2fd;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* 📅 카드 상단 (날짜 + 삭제 버튼) */
+.saved-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #1976d2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ❌ 삭제 버튼 */
+.delete-btn {
+  background-color: #ff5252;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #e53935;
+}
+
+.user-entry {
+  background-color: #fff9c4; /* 연한 노랑 */
+  padding-top: 6px;
+  padding-bottom: 6px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+
+/* nav-button 클래스는 indexStyles.css에서 정의됨 */
+/* 로그인/로그아웃 바는 indexStyles.css에 정의됨 */

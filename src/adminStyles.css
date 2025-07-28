@@ -1,0 +1,242 @@
+/* 🌐 전체 바디 및 HTML 설정 */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to bottom right, #e0f7fa, #b3e5fc);
+  overflow-anchor: none;     /* 스크롤 자동 이동 방지 */
+  scroll-behavior: auto;
+}
+
+/* 📦 관리자 컨테이너 */
+.admin-container {
+  position: relative;
+  width: 95%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px;
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+/* 🟦 페이지 상단 제목 */
+.title, .header {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #0288d1;
+  margin-top: 30px;
+  margin-bottom: 40px;
+}
+
+/* 🔽 사용자 선택 영역 */
+.dropdown-section {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+#user-select {
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* 📊 결과 표시 전체 컨테이너 */
+#results-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* 👤 각 사용자별 결과 박스 */
+.user-result {
+  background-color: #ffffffcc;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* 👤 사용자 이름 */
+.user-name {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #0288d1;
+  margin-bottom: 20px;
+}
+
+/* 🧩 각 페이지 결과를 2x2 형태로 배치 */
+.page-columns {
+  display: grid;
+  grid-template-areas:
+    "page2 page2"
+    "page1 page3";
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.page-box.page1 { grid-area: page1; }
+.page-box.page2 { grid-area: page2; }
+.page-box.page3 { grid-area: page3; }
+
+/* 📄 각 페이지별 내용 박스 */
+.page-box {
+  background-color: #f0faff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  min-height: 250px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* 🏷️ 페이지 제목 */
+.page-title {
+  font-weight: bold;
+  color: #03a9f4;
+  margin-bottom: 12px;
+}
+
+/* 👩‍🏫 교사 발화 강조 */
+.teacher-line {
+  background-color: #d2f0ff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  display: inline-block;
+  color: #007acc;
+}
+
+.scenario-editor {
+  margin-top: 40px;
+  padding: 30px;
+  background-color: #ffffffdd;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.scenario-editor textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.chat-input-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.chat-input-section input {
+  padding: 8px;
+  flex: 1;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+}
+
+#starter-conversation-list p {
+  margin: 4px 0;
+}
+
+#scenario-title {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+#scenario-list button {
+  margin-bottom: 10px;
+}
+
+#activity-select,
+#scenario-select,
+#date-select {
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.user-highlight {
+  background-color: #fff8dc;
+  /* border-left: solid #ffcc00; */
+  padding-top: 6px; 
+  padding-bottom: 6px; 
+  border-radius: 6px;
+  /* margin: 6px 0; */
+}
+
+/* 🌟 공통 버튼 스타일 */
+.btn {
+  background-color: #03a9f4;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  margin: 5px 4px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background-color: #0288d1;
+}
+
+/* ❌ 삭제 버튼은 경고색으로 */
+.btn-delete {
+  background-color: #ffb7b1;
+}
+
+.btn-delete:hover {
+  background-color: #ffa7a7;
+}
+
+.nav-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  text-decoration: none;
+  color: white;
+  background-color: #03a9f4;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.hidden {
+  display: none;
+}
+
+.btn-editor {
+  display: block;
+  width: 100%;
+  max-width: 900px; /* results-container의 최대 너비에 맞춰 조절 */
+  margin: 20px auto;
+  padding: 14px 20px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white;
+  background-color: #616161;  /* 중간 회색 */
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.btn-editor:hover {
+  background-color: #424242;  /* 진한 회색 */
+}

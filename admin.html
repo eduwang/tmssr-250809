@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lesson Play 관리자 페이지</title>
+  <link rel="stylesheet" href="src/adminStyles.css" />
+  <script type="module" src="/src/adminMain.js"></script>
+</head>
+<body>
+  <div class="admin-container">
+    <h1 class="title">Lesson Play 관리자 페이지</h1>
+
+    <div class="dropdown-section">
+      <label for="user-select">사용자 선택:</label>
+      <select id="user-select"><option value="all">전체 사용자 보기</option></select>
+
+      <label for="activity-select">활동 선택:</label>
+      <select id="activity-select">
+        <option value="page1">활동 1</option>
+        <option value="page2">활동 2</option>
+      </select>
+
+      <label for="scenario-select">시나리오 선택:</label>
+      <select id="scenario-select"></select>
+
+      <label for="date-select">날짜 선택:</label>
+      <input type="date" id="date-select" value="2025-07-28" />
+    </div>
+
+    <div id="results-container"></div>
+
+    <!-- 👇 시나리오 설정 열기/닫기 버튼 -->
+    <button id="toggle-scenario-editor" class="btn-editor">🛠️ 시나리오 설정 열기</button>
+
+    <!-- ✏️ 시나리오 에디터 (초기에는 숨김 처리) -->
+    <div class="scenario-editor hidden">
+      <h2>📘 page1 시나리오 설정</h2>
+      <label for="scenario-title">시나리오 제목:</label><br />
+      <input type="text" id="scenario-title" placeholder="예: 분수 덧셈 도입 수업" /><br /><br />
+
+      <label for="scenario-text">문제 상황 설명:</label><br />
+      <textarea id="scenario-text" rows="4" placeholder="문제 상황 텍스트를 입력하세요..."></textarea>
+
+      <h3>🗨️ 초기 대화 입력</h3>
+      <div id="starter-conversation-list"></div>
+      <div class="chat-input-section">
+        <input type="text" id="starter-speaker" placeholder="이름 (예: 교사, 민수)" />
+        <input type="text" id="starter-message" placeholder="대화 내용" />
+        <button id="add-starter-btn" class="btn">➕ 추가</button>
+      </div>
+      <div class="scenario-button-group">
+        <button id="save-scenario-btn" class="btn">💾 저장하기</button>
+        <button id="update-scenario-btn" class="btn" disabled>📝 수정하기</button>
+        <button id="delete-scenario-btn" class="btn btn-delete" disabled>🗑️ 삭제하기</button>
+      </div>
+      <h3>📁 저장된 시나리오 목록</h3>
+      <div id="scenario-list"></div>
+    </div>
+  </div>
+</body>
+</html>

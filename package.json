@@ -1,0 +1,19 @@
+{
+  "name": "tmssr-250809",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^7.0.4"
+  },
+  "dependencies": {
+    "firebase": "^12.0.0",
+    "marked": "^16.1.1",
+    "sweetalert2": "^11.22.2"
+  }
+}

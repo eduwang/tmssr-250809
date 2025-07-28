@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lesson Play 작성 활동 1</title>
+  <link rel="stylesheet" href="src/indexStyles.css" />
+  <link rel="stylesheet" href="src/page1Styles.css" />
+</head>
+<body>
+  <div class="top-bar" id="user-info" style="display: flex;">
+    <span id="user-name"></span>
+    <button id="logout-btn">로그아웃</button>
+  </div>
+
+  <div class="page1-container">
+    <div class="scenario-box">
+      <h2 class="scenario-title">아래의 문제 상황을 보고, Lesson Play를 완성하세요.</h2>
+      <p class="scenario-description">로딩 중...</p>
+    </div>
+    <div class="conversation-log" id="conversation-log"></div>
+    <div class="chat-input-section">
+      <input type="text" id="speaker-input" placeholder="이름 (예: 교사, 민수 등)" />
+      <input type="text" id="message-input" placeholder="대화를 입력하세요" />
+      <button class="nav-button" id="add-message-btn">입력</button>
+      <button class="nav-button undo-btn" id="undo-btn" title="되돌리기">&#x21A9;</button>
+    </div>
+    <div class="button-wrapper">
+        <button class="nav-button" id="submit-btn">활동 완료하기</button>
+        <a href="/index.html" class="nav-button back-button">돌아가기</a>
+    </div>
+  </div>
+  <!-- ✅ 저장된 결과 출력 영역 -->
+  <div id="saved-results-container" style="margin: 40px auto; max-width: 700px;"></div>
+
+  <script type="module" src="/src/page1Main.js"></script>
+</body>
+</html>

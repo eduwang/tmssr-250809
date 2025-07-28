@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson Play 메인 페이지</title>
+    <link rel="stylesheet" href="/src/indexStyles.css" />
+    <script type="module" src="/src/indexMain.js"></script>
+  </head>
+  <body class="index-body">
+    <!-- 상단 로그인 상태 표시 및 로그아웃 -->
+    <div class="top-bar">
+      <span id="user-info">🔐 로그인 상태 확인 중...</span>
+      <button id="logout-btn" style="display: none;">로그아웃</button>
+    </div>
+
+    <div class="wrapper">
+      <div class="container">
+        <h1 class="title">📘 Lesson Play</h1>
+        <p class="description">
+          예비 교사를 위한 수업 시뮬레이션 환경에 오신 것을 환영합니다.
+        </p>
+
+        <!-- 로그인 버튼이 삽입될 영역 -->
+        <div class="login-btn-wrapper" id="login-container">
+          <!-- JS에서 버튼 삽입 -->
+        </div>
+
+        <!-- 로그인 이후에만 보일 버튼 그룹 -->
+        <div class="button-group" id="nav-buttons" style="display: none;">
+          <a href="/page1.html" class="nav-button">🧩 페이지 1</a>
+          <a href="/page2.html" class="nav-button">🧠 페이지 2</a>
+          <a href="/admin.html" class="nav-button">관리자 페이지</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
