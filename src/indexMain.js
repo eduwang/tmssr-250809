@@ -18,8 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ✅ 기본 페이지 버튼 설정
     navButtons.style.display = "flex";
-    const page1Btn = `<a href="/page1.html" class="nav-button">🧩 페이지 1</a>`;
-    const page2Btn = `<a href="/page2.html" class="nav-button">🧠 페이지 2</a>`;
+    const page1Btn = `<a href="/page1.html" class="nav-button">🧩 활동 1: Lesson Play 작성하기</a>`;
+    const page2Btn = `<a href="/page2.html" class="nav-button">🧠 활동 2: Lesson Play 작성하고 GPT 피드백 받기</a>`;
     const adminBtn = `<a href="/admin.html" class="nav-button" style="background-color: darkgrey; color: black;">관리자 페이지</a>`;
 
     // ✅ 버튼 그룹 구성: 관리자면 관리자 버튼도 추가
