@@ -3,12 +3,10 @@ import { getFirestore, doc, getDoc, collection, getDocs, setDoc, deleteDoc } fro
 import { marked } from 'marked';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebaseConfig.js";
-
-// SweetAlert2 import (CDN 사용 시 이 줄 필요 없음)
 import Swal from 'sweetalert2';
 
 // ✅ 관리자 권한 UID 설정
-const allowedAdmins = ["MhtH5gvH0RMv4yogqP4Tj6ki4Tp1"];
+const allowedAdmins = ["MhtH5gvH0RMv4yogqP4Tj6ki4Tp1", "EWQ1oEDv8MTLq0xMy2pRpuP93vc2"];
 
 // 🔧 DOM 요소 참조
 const userSelect = document.getElementById("user-select");
@@ -21,29 +19,28 @@ const scenarioTextArea = document.getElementById("scenario-text");
 const starterSpeaker = document.getElementById("starter-speaker");
 const starterMessage = document.getElementById("starter-message");
 const addStarterBtn = document.getElementById("add-starter-btn");
-
-starterMessage.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') {
-    e.preventDefault();   // 줄바꿈 막기 (textarea가 아니니까 없어도 됨)
-    addStarterBtn.click(); // 버튼 클릭 효과
-  }
-});
-
 const starterList = document.getElementById("starter-conversation-list");
 const saveScenarioBtn = document.getElementById("save-scenario-btn");
 
+starterMessage.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    addStarterBtn.click();
+  }
+});
+
 let allUsers = [];
 let allScenarios = [];
-let starterConversation = [];  // 초기 대화 저장 배열
-let todayString = new Date().toISOString().split("T")[0]; // 오늘 날짜 (YYYY-MM-DD)
-let selectedScenarioId = null; // 시나리오 id 저장
+let starterConversation = [];
+let todayString = new Date().toISOString().split("T")[0];
+let selectedScenarioId = null;
 
 // 🔐 로그인 확인 및 관리자 권한 검증
 document.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, (user) => {
     if (user && allowedAdmins.includes(user.uid)) {
       initAdminPage();
-      loadScenarioList(); // 시나리오 목록 불러오기
+      loadScenarioList();
     } else {
       Swal.fire({
         icon: 'error',
@@ -68,7 +65,7 @@ async function initAdminPage() {
     filterAndRender();
   });
 
-  filterAndRender(); // 초기 렌더링
+  filterAndRender();
 }
 
 // 🔍 Firestore에서 유저 목록 로드
@@ -79,7 +76,8 @@ async function loadAllUsers() {
 
   snapshot.forEach(doc => {
     const data = doc.data();
-    const dateStr = data.createdAt?.toDate?.().toISOString().split("T")[0];
+    const dateStr = data.createdAt?.toDate?.().toISOString().split("T")[0] ||
+      data.updatedAt?.toDate?.().toISOString().split("T")[0];
     if (dateStr === selectedDate && data.uid) {
       const displayName = data.displayName || data.uid;
       if (!userMap.has(data.uid)) {
@@ -144,62 +142,97 @@ async function filterAndRender() {
   for (const user of filteredUsers) {
     const matchedDocs = snapshot.docs.filter(docSnap => {
       const data = docSnap.data();
-      const created = data.createdAt?.toDate?.().toISOString().split("T")[0];
+      const dateField = data.createdAt || data.updatedAt;
+      const created = dateField?.toDate?.().toISOString().split("T")[0];
       return (
         data.uid === user.uid &&
         data.scenarioId === scenarioId &&
         created === selectedDate &&
-        docSnap.id.includes(activity)
+        (activity === "page2" ? docSnap.id.includes("_page2_") : docSnap.id.includes(activity))
       );
     });
 
     matchedDocs.forEach(docSnap => {
       const data = docSnap.data();
-      const box = document.createElement("div");
-      box.classList.add("user-result");
-
-      const name = document.createElement("div");
-      name.classList.add("user-name");
-      name.textContent = `사용자: ${user.name}`;
-      box.appendChild(name);
-
-      box.appendChild(renderPageBox(`활동 ${activity.slice(-1)}`, data, activity));
+      const box = renderPageBox(user.name, `활동 ${activity.slice(-1)}`, data, activity, docSnap.id);
       resultsContainer.appendChild(box);
     });
   }
 }
 
-// 🧩 활동 결과 박스 생성
-function renderPageBox(title, data, pageKey) {
+// 🧩 활동 결과 박스 생성 (활동 1, 2 모두)
+function renderPageBox(userName, title, data, pageKey, docId) {
   const box = document.createElement("div");
   box.classList.add(pageKey, "page-box");
 
+  // 삭제 버튼
+  const delBtn = document.createElement("button");
+  delBtn.textContent = "✕";
+  delBtn.title = "이 결과 삭제";
+  delBtn.style.cssText = `
+    margin-left: 8px; background: none; border: none; color: #e57373; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+  `;
+  delBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const result = await Swal.fire({
+      title: "이 결과를 삭제하시겠습니까?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "삭제",
+      cancelButtonText: "취소"
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await deleteDoc(doc(db, "lessonPlayResponses", docId));
+      Swal.fire("삭제 완료", "문서가 삭제되었습니다.", "success");
+      filterAndRender();
+    } catch (err) {
+      Swal.fire("삭제 실패", "문서 삭제 중 오류가 발생했습니다.", "error");
+    }
+  });
+
+  // 사용자 이름 + 활동명 + 시간 + X 버튼을 한 줄에 표시
   const pageTitle = document.createElement("div");
   pageTitle.classList.add("page-title");
-
   let formattedTime = "";
-  if (data?.createdAt?.toDate) {
-    const date = data.createdAt.toDate();
+  const dateField = data.createdAt || data.updatedAt;
+  if (dateField?.toDate) {
+    const date = dateField.toDate();
     formattedTime = ` (${date.toLocaleString('ko-KR')})`;
   }
-
-  pageTitle.textContent = `${title}${formattedTime}`;
+  pageTitle.innerHTML = `<span style="color:#0288d1; font-weight:bold;">${userName}</span> ${title}${formattedTime}`;
+  pageTitle.appendChild(delBtn);
   box.appendChild(pageTitle);
 
+  // 활동 2(GPT 피드백)
   if (pageKey === "page2") {
     const conv = document.createElement("div");
-    conv.style.whiteSpace = "pre-wrap";
     conv.style.backgroundColor = "#fff";
     conv.style.padding = "10px";
     conv.style.borderRadius = "8px";
     conv.style.marginBottom = "1rem";
+    conv.style.whiteSpace = "pre-wrap";
 
-    const lines = (data.conversation || "").split('\n').map(line =>
-      line.startsWith("👩‍🏫") ? `<span class="teacher-line">${line}</span>` : line
-    );
-
-    conv.innerHTML = lines.join('<br>');
+    if (Array.isArray(data.conversation)) {
+      data.conversation.forEach(entry => {
+        const p = document.createElement("p");
+        p.innerHTML = `<strong>${entry.speaker}:</strong> ${entry.message}`;
+        if (entry.isUser) p.classList.add("user-highlight");
+        conv.appendChild(p);
+      });
+    } else if (typeof data.conversation === "string") {
+      data.conversation.split('\n').forEach(line => {
+        const p = document.createElement("p");
+        p.textContent = line;
+        conv.appendChild(p);
+      });
+    }
     box.appendChild(conv);
+
+    const feedbackTitle = document.createElement("div");
+    feedbackTitle.innerHTML = "<b>GPT 피드백</b>";
+    feedbackTitle.style.margin = "16px 0 6px 0";
+    box.appendChild(feedbackTitle);
 
     const feedback = document.createElement("div");
     feedback.innerHTML = marked.parse(data.feedback || "(피드백 없음)");
@@ -209,9 +242,7 @@ function renderPageBox(title, data, pageKey) {
     data.conversation.forEach(entry => {
       const p = document.createElement("p");
       p.innerHTML = `<strong>${entry.speaker}:</strong> ${entry.message}`;
-      if (entry.isUser) {
-        p.classList.add("user-highlight");
-      }
+      if (entry.isUser) p.classList.add("user-highlight");
       box.appendChild(p);
     });
   } else {
@@ -266,7 +297,7 @@ saveScenarioBtn.addEventListener("click", async () => {
     return;
   }
 
-  const docId = `scenario_${Date.now()}`;  // 새 ID 생성
+  const docId = `scenario_${Date.now()}`;
 
   try {
     await setDoc(doc(db, "lessonPlayScenarios", docId), {
@@ -306,7 +337,7 @@ async function loadScenarioList() {
 
   const snapshot = await getDocs(collection(db, "lessonPlayScenarios"));
   snapshot.forEach(docSnap => {
-    if (docSnap.id === "config") return; // 💡 config 제외!
+    if (docSnap.id === "config") return;
     const data = docSnap.data();
     const button = document.createElement("button");
     button.textContent = data.title || "새로 입력하기";
@@ -317,13 +348,11 @@ async function loadScenarioList() {
       starterConversation = data.starterConversation || [];
       renderStarterList();
       document.getElementById("scenario-title").value = data.title || "";
-      selectedScenarioId = docSnap.id; // ⭐️ 반드시 추가
-
+      selectedScenarioId = docSnap.id;
       try {
         await setDoc(doc(db, "lessonPlayScenarios", "config"), {
           selectedScenarioId: docSnap.id,
         }, { merge: true });
-        // 버튼 활성화
         document.getElementById("update-scenario-btn").disabled = false;
         document.getElementById("delete-scenario-btn").disabled = false;
       } catch (err) {
@@ -373,7 +402,7 @@ document.getElementById("update-scenario-btn").addEventListener("click", async (
       title,
       scenarioText: text,
       starterConversation
-    }, { merge: true }); // 기존 문서에 덮어쓰기(갱신)
+    }, { merge: true });
     Swal.fire({
       icon: 'success',
       title: '수정 완료',
@@ -436,9 +465,8 @@ document.getElementById("delete-scenario-btn").addEventListener("click", async (
   }
 });
 
-//새 시나리오 입력
+// 새 시나리오 입력
 document.getElementById("new-scenario-btn").addEventListener("click", () => {
-  // 입력창/변수/리스트 모두 초기화
   document.getElementById("scenario-title").value = "";
   document.getElementById("scenario-text").value = "";
   starterConversation = [];

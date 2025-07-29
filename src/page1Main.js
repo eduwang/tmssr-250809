@@ -14,10 +14,10 @@ import { observeAuthState } from "./authHelpers";
 import Swal from "sweetalert2";
 
 // 🔸 전역 상태 변수
-let currentUser = null;              // 현재 로그인한 사용자
-let baseConversation = [];           // 시나리오에서 제공된 초기 대화
-let userConversation = [];           // 사용자가 입력한 대화
-let selectedScenarioId = null;       // 현재 선택된 시나리오 ID
+let currentUser = null;
+let baseConversation = [];
+let userConversation = [];
+let selectedScenarioId = null;
 
 // ✅ 페이지 로드 완료 시
 document.addEventListener("DOMContentLoaded", () => {
@@ -31,8 +31,6 @@ document.addEventListener("DOMContentLoaded", () => {
     async (user) => {
       currentUser = user;
       document.getElementById("user-name").textContent = `${user.displayName}님`;
-
-      // ✅ 시나리오 로드 후 → 사용자 결과 불러오기
       await loadScenario();
       await loadUserSavedResults();
     },
@@ -48,12 +46,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   );
 
-  // 🔓 로그아웃 처리
+  // 로그아웃
   document.getElementById("logout-btn").addEventListener("click", async () => {
     await signOut(auth);
   });
 
-  // ⌨️ Enter 키 입력 시 "입력" 버튼 클릭과 동일하게 처리
+  // 엔터키 입력
   messageInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -61,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ➕ 대화 입력 버튼 클릭
+  // ➕ 대화 입력
   addMessageBtn.addEventListener("click", () => {
     const speaker = speakerInput.value.trim();
     const message = messageInput.value.trim();
@@ -76,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
     speakerInput.focus();
   });
 
-  // ↩️ 되돌리기 버튼 클릭 (사용자 대화만 삭제)
+  // ↩️ 되돌리기
   undoBtn.addEventListener("click", () => {
     if (userConversation.length > 0) {
       userConversation.pop();
@@ -84,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 💾 "활동 완료하기" 클릭 → Firestore 저장 + 화면에 표시
+  // "활동 완료하기" 클릭
   document.getElementById("submit-btn").addEventListener("click", async () => {
     if (!currentUser || userConversation.length === 0) return;
 
@@ -102,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
         displayName: currentUser.displayName,
         email: currentUser.email,
         createdAt: serverTimestamp(),
-        scenarioId: selectedScenarioId, // 현재 선택된 시나리오 ID
+        scenarioId: selectedScenarioId,
         conversation: [
           ...baseConversation.map(e => ({ ...e, isUser: false })),
           ...userConversation.map(e => ({ ...e, isUser: true }))
@@ -118,7 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
         conversation: [...baseConversation, ...userConversation]
       });
 
-      // 사용자 입력만 초기화 (시나리오는 유지)
       userConversation = [];
       renderConversationLog();
     } catch (err) {
@@ -128,28 +125,22 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-
-// ✅ 시나리오 + 초기 대화 Firestore에서 불러오기
+// ✅ 시나리오 + 초기 대화 불러오기
 async function loadScenario() {
   try {
-    // 선택된 시나리오 ID를 가져옴
     const configDoc = await getDoc(doc(db, "lessonPlayScenarios", "config"));
     const selectedId = configDoc.exists() ? configDoc.data().selectedScenarioId : null;
     if (!selectedId) throw new Error("선택된 시나리오 ID가 없습니다.");
 
-    selectedScenarioId = selectedId; // 전역 변수에 저장
+    selectedScenarioId = selectedId;
 
-    // 시나리오 문서 불러오기
     const scenarioDoc = await getDoc(doc(db, "lessonPlayScenarios", selectedScenarioId));
     if (!scenarioDoc.exists()) throw new Error("선택된 시나리오 문서를 찾을 수 없습니다.");
 
     const scenarioData = scenarioDoc.data();
 
-    // 📄 시나리오 텍스트 표시
-    const scenarioBox = document.querySelector(".scenario-description");
-    scenarioBox.textContent = scenarioData.scenarioText || "";
+    document.querySelector(".scenario-description").textContent = scenarioData.scenarioText || "";
 
-    // 🗨️ 초기 대화 표시
     baseConversation = [];
     userConversation = [];
 
@@ -170,7 +161,7 @@ function appendToConversationLog({ speaker, message }, isUser = false) {
   const log = document.getElementById("conversation-log");
   const entry = document.createElement("p");
   entry.innerHTML = `<strong>${speaker}:</strong> ${message}`;
-  if (isUser) entry.classList.add("user-entry"); // 사용자 입력 강조
+  if (isUser) entry.classList.add("user-entry");
   log.appendChild(entry);
 }
 
@@ -178,20 +169,22 @@ function appendToConversationLog({ speaker, message }, isUser = false) {
 function renderConversationLog() {
   const log = document.getElementById("conversation-log");
   log.innerHTML = "";
-  baseConversation.forEach((entry) => appendToConversationLog(entry, false));  // 기본 대화
-  userConversation.forEach((entry) => appendToConversationLog(entry, true));   // 사용자 대화
-  }
+  baseConversation.forEach((entry) => appendToConversationLog(entry, false));
+  userConversation.forEach((entry) => appendToConversationLog(entry, true));
+}
 
-// ✅ 현재 시나리오에 대한 사용자 저장 결과만 불러오기
+// ✅ 현재 시나리오에 대한 "page1" 결과만 불러오기
 async function loadUserSavedResults() {
   const snapshot = await getDocs(collection(db, "lessonPlayResponses"));
 
   snapshot.forEach(docSnap => {
     const data = docSnap.data();
+    const isPage1 = docSnap.id.includes("page1");
     if (
       data.uid === currentUser.uid &&
       data.scenarioId === selectedScenarioId &&
-      data.conversation
+      data.conversation &&
+      isPage1
     ) {
       const createdAt = data.createdAt?.toDate?.() || new Date();
       renderSavedResult({
@@ -203,7 +196,7 @@ async function loadUserSavedResults() {
   });
 }
 
-// ✅ 저장된 결과 1건을 화면에 카드로 표시
+// ✅ 저장된 결과 1건을 카드로 표시 + SweetAlert2 삭제 알림
 function renderSavedResult({ id, createdAt, conversation }) {
   const container = document.getElementById("saved-results-container");
 
@@ -230,16 +223,34 @@ function renderSavedResult({ id, createdAt, conversation }) {
     box.appendChild(p);
   });
 
-  container.prepend(box); // 최근 저장 결과가 위로 오도록
+  container.prepend(box); // 최신이 위로
 }
 
-// ✅ 결과 삭제: Firestore에서 삭제 + 화면에서 제거
+// ✅ SweetAlert2 삭제 알림
 async function deleteSavedResult(docId, domElement) {
+  const result = await Swal.fire({
+    title: "정말 삭제하시겠습니까?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "삭제",
+    cancelButtonText: "취소"
+  });
+  if (!result.isConfirmed) return;
+
   try {
     await deleteDoc(doc(db, "lessonPlayResponses", docId));
     domElement.remove();
+    Swal.fire({
+      icon: "success",
+      title: "삭제 완료",
+      text: "카드가 삭제되었습니다!"
+    });
   } catch (err) {
     console.error("삭제 실패:", err);
-    alert("삭제 중 오류 발생");
+    Swal.fire({
+      icon: "error",
+      title: "삭제 실패",
+      text: "삭제 중 오류가 발생했습니다."
+    });
   }
 }

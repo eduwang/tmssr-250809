@@ -1,0 +1,252 @@
+/* 기본 설정 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: linear-gradient(to bottom right, #e0f7fa, #b3e5fc);
+  color: #111827;
+  height: 100vh;
+}
+
+.page-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 활동 설명 */
+.description-box {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.description-box h2 {
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
+
+.description-box p {
+  color: #374151;
+  font-size: 1rem;
+}
+
+/* 메인 콘텐츠 영역 */
+.main-content {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.left-panel,
+.right-panel {
+  flex: 1;
+  min-width: 350px;
+}
+
+/* 챗봇 영역 */
+.chat-container {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-top: 2rem;
+}
+
+.chat-container h1 {
+  color: #2563eb;
+  margin-bottom: 1rem;
+}
+
+#chatbox {
+  min-height: 250px;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  background-color: #f3f4f6;
+  white-space: pre-wrap;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+#userInput {
+  width: 70%;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  margin-right: 0.5rem;
+}
+
+/* 버튼 스타일 */
+#sendBtn,
+#feedbackBtn,
+.wide-button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+#sendBtn:hover,
+#feedbackBtn:hover,
+.wide-button:hover {
+  background-color: #2563eb;
+}
+
+/* 피드백 영역 */
+.feedback-area {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  min-height: 300px;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+}
+
+.feedback-area .placeholder {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.feedback-title {
+  color: #2563eb;
+  margin-bottom: 0.75rem;
+  font-size: 1.2rem;
+}
+
+.wide-button {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 999px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+/* 이미지 캐러셀 */
+.carousel {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin: 0 auto;
+}
+
+.carousel img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 1rem;
+}
+
+.carousel-btn {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: white;
+  border: none;
+  padding: 0.5rem 0.8rem;
+  cursor: pointer;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  border-radius: 0.5rem;
+  z-index: 1;
+}
+
+.carousel-btn.left {
+  left: 0.5rem;
+}
+
+.carousel-btn.right {
+  right: 0.5rem;
+}
+
+.carousel-btn:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* 유저 정보 표시 */
+.user-info {
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: #374151;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+#logoutBtn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#logoutBtn:hover {
+  background-color: #dc2626;
+}
+
+.saved-result {
+  background-color: #e3f2fd;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+  margin-bottom: 18px;
+}
+
+.saved-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #1976d2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-btn {
+  background-color: #ff5252;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.97em;
+}
+
+.delete-btn:hover {
+  background-color: #e53935;
+}
+
+.user-entry {
+  background-color: #fff8dc;
+  border-radius: 6px;
+  padding: 4px 0;
+}

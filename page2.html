@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lesson Play 활동 2</title>
+  <link rel="stylesheet" href="src/indexStyles.css" />
+  <link rel="stylesheet" href="src/page1Styles.css" />
+  <link rel="stylesheet" href="src/page2Styles.css" />
+  <script type="module" src="/src/page2Main.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <div class="page-container">
+    <div class="user-info">
+      <span id="userInfo">🔐 로그인 상태 확인 중...</span>
+      <button id="logoutBtn" style="display: none;">로그아웃</button>
+    </div>
+
+    <div class="main-content">
+      <!-- left-panel: page1-container 복사 (활동 완료하기 버튼 제거) -->
+      <div class="left-panel">
+        <div class="page1-container">
+          <div class="scenario-box">
+            <h2 class="scenario-title">아래의 문제 상황을 보고, Lesson Play를 완성하세요.</h2>
+            <p class="scenario-description">로딩 중...</p>
+          </div>
+          <div class="conversation-log" id="conversation-log"></div>
+          <div class="chat-input-section">
+            <input type="text" id="speaker-input" placeholder="이름 (예: 교사, 민수 등)" />
+            <input type="text" id="message-input" placeholder="대화를 입력하세요" />
+            <button class="nav-button" id="add-message-btn">입력</button>
+            <button class="nav-button undo-btn" id="undo-btn" title="되돌리기">&#x21A9;</button>
+          </div>
+          <div class="button-wrapper">
+              <!-- 활동 완료하기 버튼은 제거, 돌아가기만 유지 -->
+              <a href="/index.html" class="nav-button back-button">돌아가기</a>
+          </div>
+        </div>
+        <!-- 저장된 결과 출력 영역은 page2에선 필요 없다면 생략 (필요하면 추가) -->
+      </div>
+      <!-- right-panel: 기존 피드백 영역 유지 -->
+      <div class="right-panel">
+        <textarea id="inputText" style="display:none"></textarea>
+        <h2 class="feedback-title">💬 피드백 공간</h2>
+        <div id="result" class="feedback-area">
+          <p class="placeholder">여기에 GPT 피드백이 표시됩니다.</p>
+        </div>
+        <button id="feedbackBtn" class="wide-button">💬 피드백 받기</button>
+      </div>
+    </div>
+    <div id="saved-results-container"></div>
+  </div>
+</body>
+</html>
