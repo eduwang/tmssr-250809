@@ -12,8 +12,11 @@
     <h1 class="title">Lesson Play 관리자 페이지</h1>
 
     <div class="dropdown-section">
-      <label for="user-select">사용자 선택:</label>
-      <select id="user-select"><option value="all">전체 사용자 보기</option></select>
+      <label for="date-select">날짜 선택:</label>
+      <input type="date" id="date-select" value="2025-07-28" />
+      
+      <label for="scenario-select">시나리오 선택:</label>
+      <select id="scenario-select"></select>
 
       <label for="activity-select">활동 선택:</label>
       <select id="activity-select">
@@ -21,11 +24,11 @@
         <option value="page2">활동 2</option>
       </select>
 
-      <label for="scenario-select">시나리오 선택:</label>
-      <select id="scenario-select"></select>
+      <br>
+      <label for="user-select">사용자 선택:</label>
+      <select id="user-select"><option value="all">전체 사용자 보기</option></select>
 
-      <label for="date-select">날짜 선택:</label>
-      <input type="date" id="date-select" value="2025-07-28" />
+
     </div>
 
     <div id="results-container"></div>
