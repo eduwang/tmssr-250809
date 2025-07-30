@@ -80,13 +80,18 @@ async function loadAllUsers() {
       data.updatedAt?.toDate?.().toISOString().split("T")[0];
     if (dateStr === selectedDate && data.uid) {
       const displayName = data.displayName || data.uid;
+      const email = data.email || "";
       if (!userMap.has(data.uid)) {
-        userMap.set(data.uid, displayName);
+        userMap.set(data.uid, { displayName, email });
       }
     }
   });
 
-  allUsers = Array.from(userMap.entries()).map(([uid, name]) => ({ uid, name }));
+  allUsers = Array.from(userMap.entries()).map(([uid, { displayName, email }]) => ({
+    uid,
+    name: displayName,
+    email,
+  }));
 
   // 사용자 드롭다운 구성
   userSelect.innerHTML = "";
@@ -98,7 +103,7 @@ async function loadAllUsers() {
   allUsers.forEach(user => {
     const option = document.createElement("option");
     option.value = user.uid;
-    option.textContent = user.name;
+    option.textContent = `${user.name}${user.email ? ` (${user.email})` : ""}`;
     userSelect.appendChild(option);
   });
 }
@@ -191,7 +196,7 @@ function renderPageBox(userName, title, data, pageKey, docId) {
     }
   });
 
-  // 사용자 이름 + 활동명 + 시간 + X 버튼을 한 줄에 표시
+  // 사용자 이름 + 이메일 + 활동명 + 시간 + X 버튼을 한 줄에 표시
   const pageTitle = document.createElement("div");
   pageTitle.classList.add("page-title");
   let formattedTime = "";
@@ -200,7 +205,9 @@ function renderPageBox(userName, title, data, pageKey, docId) {
     const date = dateField.toDate();
     formattedTime = ` (${date.toLocaleString('ko-KR')})`;
   }
-  pageTitle.innerHTML = `<span style="color:#0288d1; font-weight:bold;">${userName}</span> ${title}${formattedTime}`;
+  // 📧 이메일 표시
+  const userEmail = data.email ? ` (${data.email})` : "";
+  pageTitle.innerHTML = `<span style="color:#0288d1; font-weight:bold;">${userName}${userEmail}</span> ${title}${formattedTime}`;
   pageTitle.appendChild(delBtn);
   box.appendChild(pageTitle);
 
@@ -251,6 +258,7 @@ function renderPageBox(userName, title, data, pageKey, docId) {
 
   return box;
 }
+
 
 // ➕ 초기 대화 추가
 addStarterBtn.addEventListener("click", () => {
