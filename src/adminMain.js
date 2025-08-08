@@ -6,7 +6,7 @@ import { auth, db } from "./firebaseConfig.js";
 import Swal from 'sweetalert2';
 
 // ✅ 관리자 권한 UID 설정
-const allowedAdmins = ["MhtH5gvH0RMv4yogqP4Tj6ki4Tp1", "EWQ1oEDv8MTLq0xMy2pRpuP93vc2"];
+const allowedAdmins = ["MhtH5gvH0RMv4yogqP4Tj6ki4Tp1", "EWQ1oEDv8MTLq0xMy2pRpuP93vc2", "sCYx1gjxSucOHkqYAOqprosCCTt2"];
 
 // 🔧 DOM 요소 참조
 const userSelect = document.getElementById("user-select");
