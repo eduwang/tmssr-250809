@@ -236,6 +236,7 @@ function renderSavedResult({ id, createdAt, conversation, feedback }) {
   delBtn.classList.add("delete-btn");
   delBtn.textContent = "삭제";
   delBtn.onclick = () => deleteSavedResult(id, box);
+  delBtn.style.display = "none"
   header.appendChild(delBtn);
   box.appendChild(header);
 
