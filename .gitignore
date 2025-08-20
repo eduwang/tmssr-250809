@@ -13,6 +13,8 @@ dist-ssr
 *.local
 
 .env
+changeDocumentID.js
+changeDocumentID.html
 
 # Editor directories and files
 .vscode/*

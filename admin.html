@@ -5,36 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lesson Play 관리자 페이지</title>
   <link rel="stylesheet" href="src/adminStyles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script type="module" src="/src/adminMain.js"></script>
 </head>
 <body>
   <div class="admin-container">
     <h1 class="title">Lesson Play 관리자 페이지</h1>
 
-    <div class="dropdown-section">
-      <label for="date-select">날짜 선택:</label>
-      <input type="date" id="date-select" value="2025-07-28" />
+    <!-- 📅 필터링 컨트롤 섹션 -->
+    <div class="filter-controls">
+      <!-- 첫 번째 줄: 날짜 선택 + 피드백 표시 -->
+      <div class="filter-row">
+        <div class="filter-group date-group">
+          <label for="date-select">날짜 선택</label>
+          <div class="date-checkboxes" id="date-checkboxes">
+            <!-- 체크박스들이 여기에 동적으로 생성됩니다 -->
+          </div>
+        </div>
+        
+        <div class="filter-group feedback-group">
+          <label for="feedback-display">피드백 표시</label>
+          <div class="feedback-display-control">
+            <div class="date-checkbox-item">
+              <input type="checkbox" value="show-feedback" id="feedback-display-checkbox">
+              <label for="feedback-display-checkbox">
+                <span class="checkmark-small"></span>
+                <span class="date-label">피드백이 있는 대화도 표시</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
       
-      <label for="scenario-select">시나리오 선택:</label>
-      <select id="scenario-select"></select>
-
-      <label for="activity-select">활동 선택:</label>
-      <select id="activity-select">
-        <option value="page1">활동 1</option>
-        <option value="page2">활동 2</option>
-      </select>
-
-      <br>
-      <label for="user-select">사용자 선택:</label>
-      <select id="user-select"><option value="all">전체 사용자 보기</option></select>
-
-
+      <!-- 두 번째 줄: 시나리오 선택 + 사용자 선택 -->
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="scenario-select">시나리오 선택</label>
+          <select id="scenario-select"></select>
+        </div>
+        
+        <div class="filter-group">
+          <label for="user-select">사용자 선택</label>
+          <select id="user-select"><option value="all">전체 사용자 보기</option></select>
+        </div>
+      </div>
     </div>
 
     <div id="results-container"></div>
 
-    <!-- 👇 시나리오 설정 열기/닫기 버튼 -->
-    <button id="toggle-scenario-editor" class="btn-editor">🛠️ 시나리오 설정 열기</button>
+    <!-- 🎛️ 피드백 기능 제어 및 시나리오 설정 -->
+    <div class="control-section">
+      <div class="feedback-control">
+        <label for="feedback-enabled" class="feedback-checkbox">
+          <input type="checkbox" id="feedback-enabled" />
+          <span class="checkmark"></span>
+          <span class="label-text">AI 피드백 기능 활성화</span>
+        </label>
+      </div>
+      
+      <button id="toggle-scenario-editor" class="btn-editor toggle-btn">
+        <span class="btn-text">🛠️ 시나리오 설정 열기</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+    </div>
 
     <!-- ✏️ 시나리오 에디터 (초기에는 숨김 처리) -->
     <div class="scenario-editor hidden">

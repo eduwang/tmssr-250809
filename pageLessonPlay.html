@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lesson Play 활동</title>
+  <link rel="stylesheet" href="src/indexStyles.css" />
+  <link rel="stylesheet" href="src/pageLP.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script type="module" src="/src/pageLP.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <div class="page-container feedback-disabled">
+    <div class="user-info">
+      <span id="userInfo">🔐 로그인 상태 확인 중...</span>
+      <button id="logoutBtn" style="display: none;">로그아웃</button>
+    </div>
+
+    <div class="main-content">
+      <!-- left-panel: page1-container 복사 (활동 완료하기 버튼 제거) -->
+      <div class="left-panel">
+        <div class="page1-container">
+          <div class="scenario-box">
+            <h2 class="scenario-title">아래의 문제 상황을 보고, Lesson Play를 완성하세요.</h2>
+            <p class="scenario-description">로딩 중...</p>
+          </div>
+          
+          <!-- 기존 대화 로그 영역을 Handsontable로 교체 -->
+          <div class="excel-table-container">
+            <h3>Lesson Play 작성</h3>
+            <button id="expand-toggle" class="expand-toggle" title="테이블 확장/축소">📏 확장</button>
+            <div id="excel-table"></div>
+            <div class="table-controls">
+              <button id="add-row" class="nav-button">행 추가</button>
+              <button id="del-row" class="nav-button">행 삭제</button>
+              <!-- <button class="nav-button undo-btn" id="undo-btn" title="되돌리기">&#x21A9;</button> -->
+              <button id="submit-btn" class="nav-button submit-btn">제출</button>
+            </div>
+          </div>
+          
+          <div class="button-wrapper">
+              <!-- 활동 완료하기 버튼은 제거, 돌아가기만 유지 -->
+              <!-- <a href="/index.html" class="nav-button back-button">돌아가기</a> -->
+          </div>
+        </div>
+        <!-- 저장된 결과 출력 영역은 page2에선 필요 없다면 생략 (필요하면 추가) -->
+      </div>
+      <!-- right-panel: 기존 피드백 영역 유지 -->
+      <div class="right-panel">
+        <textarea id="inputText" style="display:none"></textarea>
+        <h2 class="feedback-title">💬 피드백 공간</h2>
+        <div id="result" class="feedback-area">
+          <p class="placeholder">여기에 GPT 피드백이 표시됩니다.</p>
+        </div>
+        <button id="feedbackBtn" class="wide-button">💬 피드백 받기</button>
+      </div>
+    </div>
+    <div id="saved-results-container"></div>
+  </div>
+</body>
+</html>
