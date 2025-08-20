@@ -570,7 +570,7 @@ function renderSavedResult({ id, createdAt, conversation, feedback }, type = 'co
   delBtn.onclick = () => deleteSavedResult(id, box);
   
   header.appendChild(loadBtn);
-  header.appendChild(delBtn);
+  // header.appendChild(delBtn);
   box.appendChild(header);
 
   // 내용을 result-content로 감싸기
