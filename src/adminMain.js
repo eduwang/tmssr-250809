@@ -200,21 +200,34 @@ async function loadAllDocuments() {
        // createdAt이 있으면 사용, 없으면 updatedAt 사용
        const timestamp = data.createdAt?.toDate?.() || data.updatedAt?.toDate?.() || new Date();
        
-       // 이미 한국 시간으로 저장되어 있으므로 그대로 사용
-       const koreanTime = timestamp;
+       // 토글 제목용: 원본 시간 그대로 사용 (이미 한국 시간)
+       const displayTime = timestamp;
        
-       // 한국 시간 기준으로 날짜 문자열 생성 (YYYY-MM-DD)
-       const year = koreanTime.getUTCFullYear();
-       const month = String(koreanTime.getUTCMonth() + 1).padStart(2, '0');
-       const day = String(koreanTime.getUTCDate()).padStart(2, '0');
+       // 날짜 체크박스용: UTC 시간으로 변환 후 한국 시간으로 다시 변환
+       // (Firestore의 toDate()는 UTC 시간을 반환하므로)
+       let utcTime;
+       if (timestamp === data.createdAt?.toDate?.() || timestamp === data.updatedAt?.toDate?.()) {
+         // Firestore Timestamp인 경우 UTC 시간으로 처리
+         utcTime = timestamp;
+       } else {
+         // 이미 Date 객체인 경우 (이미 한국 시간으로 변환된 경우)
+         // UTC 시간으로 되돌리기 위해 9시간 빼기
+         utcTime = new Date(timestamp.getTime() - (9 * 60 * 60 * 1000));
+       }
+       
+       // UTC 시간을 한국 시간으로 변환하여 날짜 문자열 생성
+       const koreanTime = new Date(utcTime.getTime() + (9 * 60 * 60 * 1000));
+       const year = koreanTime.getFullYear();
+       const month = String(koreanTime.getMonth() + 1).padStart(2, '0');
+       const day = String(koreanTime.getDate()).padStart(2, '0');
        const dateStr = `${year}-${month}-${day}`;
        
        documents.push({
          id: doc.id,
          ...data,
          type: docType, // 추출한 타입을 명시적으로 설정
-         createdAt: koreanTime, // 원본 시간 그대로 사용
-         dateStr: dateStr
+         createdAt: displayTime, // 토글 제목용: 원본 시간 그대로
+         dateStr: dateStr // 날짜 체크박스용: 정확한 한국 날짜
        });
 
       // 사용자 정보 수집
@@ -271,7 +284,11 @@ function populateDateCheckboxes(dates) {
 
   // 개별 날짜 체크박스들
   dates.forEach(date => {
-    const dateItem = createDateCheckboxItem(date, new Date(date).toLocaleDateString('ko-KR'), false);
+    // date는 이미 YYYY-MM-DD 형태의 문자열이므로 직접 파싱
+    const [year, month, day] = date.split('-');
+    const displayDate = `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
+    
+    const dateItem = createDateCheckboxItem(date, displayDate, false);
     const dateCheckbox = dateItem.querySelector('input[type="checkbox"]');
     dateCheckbox.addEventListener("change", () => {
       // 전체 선택 체크박스 상태 업데이트
