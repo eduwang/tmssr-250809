@@ -4,6 +4,8 @@ import { marked } from 'marked';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebaseConfig.js";
 import Swal from 'sweetalert2';
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.css';
 
 // ✅ 관리자 권한 UID 설정
 const allowedAdmins = ["MhtH5gvH0RMv4yogqP4Tj6ki4Tp1", "EWQ1oEDv8MTLq0xMy2pRpuP93vc2", "sCYx1gjxSucOHkqYAOqprosCCTt2"];
@@ -17,18 +19,11 @@ const resultsContainer = document.getElementById("results-container");
 const feedbackEnabled = document.getElementById("feedback-enabled");
 
 const scenarioTextArea = document.getElementById("scenario-text");
-const starterSpeaker = document.getElementById("starter-speaker");
-const starterMessage = document.getElementById("starter-message");
-const addStarterBtn = document.getElementById("add-starter-btn");
-const starterList = document.getElementById("starter-conversation-list");
+const starterTableContainer = document.getElementById("starter-conversation-table");
 const saveScenarioBtn = document.getElementById("save-scenario-btn");
 
-starterMessage.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    addStarterBtn.click();
-  }
-});
+// Handsontable 인스턴스
+let starterTable;
 
 let allUsers = [];
 let allScenarios = [];
@@ -56,6 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
 async function initAdminPage() {
   await loadAllScenarios();
   await loadFeedbackSettings();
+  
+  // Handsontable 초기화
+  initStarterTable();
 
   // 이벤트 리스너 등록
   userSelect.addEventListener("change", filterAndRender);
@@ -65,6 +63,10 @@ async function initAdminPage() {
 
   // 피드백 기능 제어 이벤트 리스너
   feedbackEnabled.addEventListener("change", saveFeedbackSettings);
+
+  // 테이블 컨트롤 버튼 이벤트 리스너
+  document.getElementById("add-row-btn").addEventListener("click", addRow);
+  document.getElementById("delete-row-btn").addEventListener("click", deleteRow);
 
   // 스크롤 탑 버튼 생성
   createScrollTopButton();
@@ -136,6 +138,77 @@ function createScrollTopButton() {
   
   // 페이지에 추가
   document.body.appendChild(scrollTopBtn);
+}
+
+// 📊 Handsontable 초기화
+function initStarterTable() {
+  console.log('Handsontable 초기화 시작');
+  console.log('Container:', starterTableContainer);
+  
+  if (!starterTableContainer) {
+    console.error('starterTableContainer를 찾을 수 없습니다!');
+    return;
+  }
+  
+  try {
+    starterTable = new Handsontable(starterTableContainer, {
+      data: [['', '']], // 빈 행 하나 추가
+      colHeaders: ['화자', '메시지'],
+      columns: [
+        { data: 0, type: 'text' },
+        { data: 1, type: 'text' }
+      ],
+      rowHeaders: true,
+      height: 300,
+      minSpareRows: 1,
+      stretchH: 'all',
+      licenseKey: 'non-commercial-and-evaluation',
+      contextMenu: true,
+      afterChange: function(changes, source) {
+        if (source === 'loadData') return;
+        
+        // 데이터 변경 시 starterConversation 배열 업데이트
+        const data = starterTable.getData();
+        starterConversation = data
+          .filter(row => row[0] && row[1]) // 빈 행 제거
+          .map(row => ({ speaker: row[0], message: row[1] }));
+      }
+    });
+    
+    console.log('Handsontable 초기화 완료:', starterTable);
+  } catch (error) {
+    console.error('Handsontable 초기화 실패:', error);
+  }
+}
+
+// ➕ 행 추가
+function addRow() {
+  if (starterTable) {
+    starterTable.alter('insert_row_below');
+    console.log('행 추가됨');
+  }
+}
+
+// ➖ 행 삭제
+function deleteRow() {
+  if (starterTable) {
+    const selected = starterTable.getSelected();
+    if (selected && selected.length > 0) {
+      // 선택된 행들 삭제
+      const rowsToDelete = selected.map(range => range[0].from.row).sort((a, b) => b - a);
+      rowsToDelete.forEach(rowIndex => {
+        starterTable.alter('remove_row', rowIndex);
+      });
+      console.log('선택된 행들 삭제됨');
+    } else {
+      // 마지막 행 삭제
+      const rowCount = starterTable.countRows();
+      if (rowCount > 1) {
+        starterTable.alter('remove_row', rowCount - 1);
+        console.log('마지막 행 삭제됨');
+      }
+    }
+  }
 }
 
 // 🎛️ 피드백 설정 로드
@@ -700,41 +773,34 @@ async function deleteResult(docId, cardElement) {
 }
 
 
-// ➕ 초기 대화 추가
-addStarterBtn.addEventListener("click", () => {
-  const speaker = starterSpeaker.value.trim();
-  const message = starterMessage.value.trim();
-  if (!speaker || !message) return;
-
-  starterConversation.push({ speaker, message });
-  renderStarterList();
-
-  starterSpeaker.value = "";
-  starterMessage.value = "";
-  starterSpeaker.focus();
-});
-
-// 🔄 초기 대화 리스트 렌더링
-function renderStarterList() {
-  starterList.innerHTML = "";
-  starterConversation.forEach((entry, idx) => {
-    const p = document.createElement("p");
-    p.innerHTML = `<strong>${entry.speaker}:</strong> ${entry.message} 
-     <button onclick="removeStarter(${idx})" class="btn btn-delete" style="margin-left:10px;">❌</button>`;
-    starterList.appendChild(p);
-  });
+// 📊 Handsontable에 데이터 로드
+function loadStarterTableData(data) {
+  if (starterTable && data && Array.isArray(data)) {
+    const tableData = data.map(item => [item.speaker, item.message]);
+    starterTable.loadData(tableData);
+  } else if (starterTable) {
+    starterTable.loadData([]);
+  }
 }
 
-// ❌ 초기 대화 항목 제거
-window.removeStarter = function(idx) {
-  starterConversation.splice(idx, 1);
-  renderStarterList();
-};
+// 📊 Handsontable에서 데이터 가져오기
+function getStarterTableData() {
+  if (starterTable) {
+    const data = starterTable.getData();
+    return data
+      .filter(row => row[0] && row[1]) // 빈 행 제거
+      .map(row => ({ speaker: row[0], message: row[1] }));
+  }
+  return [];
+}
 
 // 💾 시나리오 저장 (새로 저장만 가능)
 saveScenarioBtn.addEventListener("click", async () => {
   const title = document.getElementById("scenario-title").value.trim();
   const text = scenarioTextArea.value.trim();
+  
+  // Handsontable에서 데이터 가져오기
+  const conversationData = getStarterTableData();
 
   if (!title || !text) {
     Swal.fire({
@@ -751,7 +817,7 @@ saveScenarioBtn.addEventListener("click", async () => {
     await setDoc(doc(db, "lessonPlayScenarios", docId), {
       title,
       scenarioText: text,
-      starterConversation
+      starterConversation: conversationData
     });
 
     Swal.fire({
@@ -765,7 +831,7 @@ saveScenarioBtn.addEventListener("click", async () => {
     document.getElementById("scenario-title").value = "";
     scenarioTextArea.value = "";
     starterConversation = [];
-    renderStarterList();
+    loadStarterTableData([]);
     await loadAllScenarios();
     await loadScenarioList();
   } catch (err) {
@@ -794,7 +860,7 @@ async function loadScenarioList() {
     button.onclick = async () => {
       scenarioTextArea.value = data.scenarioText || "";
       starterConversation = data.starterConversation || [];
-      renderStarterList();
+      loadStarterTableData(starterConversation);
       document.getElementById("scenario-title").value = data.title || "";
       selectedScenarioId = docSnap.id;
       try {
@@ -843,6 +909,10 @@ document.getElementById("update-scenario-btn").addEventListener("click", async (
   }
   const title = document.getElementById("scenario-title").value.trim();
   const text = scenarioTextArea.value.trim();
+  
+  // Handsontable에서 데이터 가져오기
+  const conversationData = getStarterTableData();
+  
   if (!title || !text) {
     Swal.fire({
       icon: 'warning',
@@ -855,7 +925,7 @@ document.getElementById("update-scenario-btn").addEventListener("click", async (
     await setDoc(doc(db, "lessonPlayScenarios", selectedScenarioId), {
       title,
       scenarioText: text,
-      starterConversation
+      starterConversation: conversationData
     }, { merge: true });
     Swal.fire({
       icon: 'success',
@@ -906,7 +976,7 @@ document.getElementById("delete-scenario-btn").addEventListener("click", async (
     document.getElementById("scenario-title").value = "";
     scenarioTextArea.value = "";
     starterConversation = [];
-    renderStarterList();
+    loadStarterTableData([]);
     await loadAllScenarios();
     await loadScenarioList();
   } catch (err) {
@@ -924,7 +994,7 @@ document.getElementById("new-scenario-btn").addEventListener("click", () => {
   document.getElementById("scenario-title").value = "";
   document.getElementById("scenario-text").value = "";
   starterConversation = [];
-  renderStarterList();
+  loadStarterTableData([]);
 
   selectedScenarioId = null;
   document.getElementById("update-scenario-btn").disabled = true;

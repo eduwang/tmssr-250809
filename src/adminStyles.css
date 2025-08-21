@@ -818,3 +818,106 @@ html, body {
 .toggle-btn.expanded .toggle-icon {
   transform: rotate(180deg);
 }
+
+/* 📊 Handsontable 스타일 */
+#starter-conversation-table {
+  margin: 20px 0;
+  border-radius: 8px;
+  overflow: visible;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 250px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  width: 100%;
+}
+
+/* Handsontable 전체 컨테이너 */
+#starter-conversation-table .ht-root-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 테이블 자체 */
+#starter-conversation-table .ht-core {
+  width: 100% !important;
+  border-collapse: collapse;
+  border: 1px solid #e5e7eb;
+}
+
+/* 헤더 셀 */
+#starter-conversation-table .ht-core th {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  padding: 12px 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* 데이터 셀 */
+#starter-conversation-table .ht-core td {
+  background-color: white !important;
+  padding: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+#starter-conversation-table .ht-core td:hover {
+  background-color: #f3f4f6 !important;
+}
+
+/* 행 번호 */
+#starter-conversation-table .ht-row-headers {
+  width: 50px !important;
+}
+
+#starter-conversation-table .ht-row-headers th {
+  background-color: #f8fafc !important;
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+  border: 1px solid #e5e7eb !important;
+  padding: 8px 4px !important;
+}
+
+#starter-conversation-table .ht-row-headers th:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 입력 필드 스타일 */
+#starter-conversation-table .ht-core input {
+  border: none !important;
+  background: transparent !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+}
+
+/* 테이블 컨트롤 버튼 */
+.table-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+.table-controls button {
+  padding: 8px 16px;
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.table-controls button:hover {
+  background-color: #4b5563;
+}
+
+.table-controls button:active {
+  transform: translateY(1px);
+}

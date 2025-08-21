@@ -14,6 +14,8 @@
   "dependencies": {
     "firebase": "^12.0.0",
     "handsontable": "^16.0.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
     "marked": "^16.1.1",
     "sweetalert2": "^11.22.2"
   }

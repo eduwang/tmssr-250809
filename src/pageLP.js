@@ -14,6 +14,8 @@ import Swal from "sweetalert2";
 import { marked } from "marked";
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 let currentUser = null;
 let baseConversation = [];
@@ -367,6 +369,12 @@ function updateUserConversation() {
 
 // Handsontable에 데이터 렌더링
 function renderExcelTable() {
+  // hot 변수가 초기화되지 않았으면 함수 종료
+  if (!hot) {
+    console.log('Handsontable이 아직 초기화되지 않았습니다.');
+    return;
+  }
+
   const allData = [
     ...baseConversation.map(e => [e.speaker, e.message]),
     ...userConversation.map(e => [e.speaker, e.message])
@@ -442,7 +450,11 @@ async function loadScenario() {
         baseConversation.push(entry);
       });
     }
-    renderExcelTable();
+    
+    // Handsontable이 초기화된 후에만 renderExcelTable 호출
+    if (hot) {
+      renderExcelTable();
+    }
   } catch (error) {
     console.error("시나리오 로딩 실패:", error);
     Swal.fire("시나리오 로딩 실패", error.message, "error");
@@ -607,7 +619,17 @@ function renderSavedResult({ id, createdAt, conversation, feedback }, type = 'co
     const feedbackBox = document.createElement("div");
     feedbackBox.classList.add("feedback-area");
     feedbackBox.innerHTML = marked.parse(feedback);
+    
+    // 다운로드 버튼 추가
+    const downloadControls = document.createElement("div");
+    downloadControls.classList.add("download-controls");
+    downloadControls.innerHTML = `
+      <button class="download-btn" onclick="downloadFeedbackAsImage(this)">🖼️ 이미지</button>
+      <button class="download-btn" onclick="downloadFeedbackAsPdf(this)">📄 PDF</button>
+    `;
+    
     contentDiv.appendChild(feedbackBox);
+    contentDiv.appendChild(downloadControls);
   }
 
   box.appendChild(contentDiv);
@@ -802,3 +824,355 @@ async function getAssistantFeedback(userText) {
   const assistantMessages = messagesData.data.filter(msg => msg.role === "assistant");
   return assistantMessages.map(m => m.content[0].text.value).join("\n").replace(/【.*?†.*?】/g, '');
 }
+
+// 🖼️ 이미지 다운로드
+async function downloadAsImage() {
+  try {
+    const feedbackArea = document.getElementById('result');
+    
+    // 피드백 영역이 비어있으면 경고
+    if (feedbackArea.innerHTML.includes('placeholder') || feedbackArea.innerHTML.trim() === '') {
+      Swal.fire({
+        icon: 'warning',
+        title: '피드백 없음',
+        text: '먼저 피드백을 받아주세요.'
+      });
+      return;
+    }
+
+    // 로딩 표시
+    Swal.fire({
+      title: '이미지 생성 중...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // 피드백 영역을 이미지로 변환 (가로 길이 2배)
+    const canvas = await html2canvas(feedbackArea, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      width: feedbackArea.scrollWidth * 2,
+      height: feedbackArea.scrollHeight,
+      useCORS: true,
+      allowTaint: true
+    });
+
+    // 이미지 다운로드
+    const link = document.createElement('a');
+    link.download = `피드백_${new Date().toISOString().split('T')[0]}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+
+    Swal.fire({
+      icon: 'success',
+      title: '다운로드 완료!',
+      text: '피드백이 이미지로 저장되었습니다.',
+      timer: 2000,
+      showConfirmButton: false
+    });
+
+  } catch (error) {
+    console.error('이미지 다운로드 실패:', error);
+    Swal.fire({
+      icon: 'error',
+      title: '다운로드 실패',
+      text: '이미지 생성 중 오류가 발생했습니다.'
+    });
+  }
+}
+
+// 📄 PDF 다운로드
+async function downloadAsPdf() {
+  try {
+    const feedbackArea = document.getElementById('result');
+    
+    // 피드백 영역이 비어있으면 경고
+    if (feedbackArea.innerHTML.includes('placeholder') || feedbackArea.innerHTML.trim() === '') {
+      Swal.fire({
+        icon: 'warning',
+        title: '피드백 없음',
+        text: '먼저 피드백을 받아주세요.'
+      });
+      return;
+    }
+
+    // 로딩 표시
+    Swal.fire({
+      title: 'PDF 생성 중...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // 피드백 영역을 이미지로 변환 (가로 길이 2배)
+    const canvas = await html2canvas(feedbackArea, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      width: feedbackArea.scrollWidth * 2,
+      height: feedbackArea.scrollHeight,
+      useCORS: true,
+      allowTaint: true
+    });
+
+    // PDF 생성 (가로 길이 2배)
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'landscape', // 가로 방향
+      unit: 'px',
+      format: [canvas.width, canvas.height]
+    });
+
+    // 이미지를 PDF에 추가
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+
+    // PDF 다운로드
+    pdf.save(`피드백_${new Date().toISOString().split('T')[0]}.pdf`);
+
+    Swal.fire({
+      icon: 'success',
+      title: '다운로드 완료!',
+      text: '피드백이 PDF로 저장되었습니다.',
+      timer: 2000,
+      showConfirmButton: false
+    });
+
+  } catch (error) {
+    console.error('PDF 다운로드 실패:', error);
+    Swal.fire({
+      icon: 'error',
+      title: '다운로드 실패',
+      text: 'PDF 생성 중 오류가 발생했습니다.'
+    });
+  }
+}
+
+// 🖼️ 피드백 이미지 다운로드
+window.downloadFeedbackAsImage = async function(button) {
+  try {
+    const feedbackCard = button.closest('.saved-result');
+    const feedbackArea = feedbackCard.querySelector('.feedback-area');
+    
+    if (!feedbackArea) {
+      Swal.fire({
+        icon: 'warning',
+        title: '피드백 없음',
+        text: '다운로드할 피드백이 없습니다.'
+      });
+      return;
+    }
+
+    // 로딩 표시
+    Swal.fire({
+      title: '이미지 생성 중...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // 다운로드용 임시 컨테이너 생성 (가로로 넓게)
+    const tempContainer = document.createElement('div');
+    tempContainer.style.cssText = `
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 1200px;
+      background: white;
+      padding: 40px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+      box-sizing: border-box;
+    `;
+    
+    // 피드백 내용을 가로로 넓게 배치
+    tempContainer.innerHTML = `
+      <div style="
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        width: 100%;
+      ">
+        <div style="
+          background: #f8fafc;
+          padding: 20px;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+        ">
+          <h3 style="margin: 0 0 15px 0; color: #2563eb; font-size: 18px;">💬 대화문</h3>
+          ${feedbackCard.querySelector('.conversation-table').outerHTML}
+        </div>
+        <div style="
+          background: #f0f9ff;
+          padding: 20px;
+          border-radius: 8px;
+          border: 1px solid #3b82f6;
+        ">
+          <h3 style="margin: 0 0 15px 0; color: #1e40af; font-size: 18px;">📝 AI 피드백</h3>
+          ${feedbackArea.innerHTML}
+        </div>
+      </div>
+    `;
+    
+    // 임시 컨테이너를 DOM에 추가
+    document.body.appendChild(tempContainer);
+    
+    // 이미지로 변환
+    const canvas = await html2canvas(tempContainer, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      width: 1200,
+      height: tempContainer.scrollHeight,
+      useCORS: true,
+      allowTaint: true
+    });
+    
+    // 임시 컨테이너 제거
+    document.body.removeChild(tempContainer);
+
+    // 이미지 다운로드
+    const link = document.createElement('a');
+    const timestamp = new Date().toISOString().split('T')[0];
+    link.download = `피드백_${timestamp}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+
+    Swal.fire({
+      icon: 'success',
+      title: '다운로드 완료!',
+      text: '피드백이 가로로 넓은 이미지로 저장되었습니다.',
+      timer: 2000,
+      showConfirmButton: false
+    });
+
+  } catch (error) {
+    console.error('이미지 다운로드 실패:', error);
+    Swal.fire({
+      icon: 'error',
+      title: '다운로드 실패',
+      text: '이미지 생성 중 오류가 발생했습니다.'
+    });
+  }
+};
+
+// 📄 피드백 PDF 다운로드
+window.downloadFeedbackAsPdf = async function(button) {
+  try {
+    const feedbackCard = button.closest('.saved-result');
+    const feedbackArea = feedbackCard.querySelector('.feedback-area');
+    
+    if (!feedbackArea) {
+      Swal.fire({
+        icon: 'warning',
+        title: '피드백 없음',
+        text: '다운로드할 피드백이 없습니다.'
+      });
+      return;
+    }
+
+    // 로딩 표시
+    Swal.fire({
+      title: 'PDF 생성 중...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    // 다운로드용 임시 컨테이너 생성 (가로로 넓게)
+    const tempContainer = document.createElement('div');
+    tempContainer.style.cssText = `
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 1200px;
+      background: white;
+      padding: 40px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+      box-sizing: border-box;
+    `;
+    
+    // 피드백 내용을 가로로 넓게 배치
+    tempContainer.innerHTML = `
+      <div style="
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        width: 100%;
+      ">
+        <div style="
+          background: #f8fafc;
+          padding: 20px;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+        ">
+          <h3 style="margin: 0 0 15px 0; color: #2563eb; font-size: 18px;">💬 대화문</h3>
+          ${feedbackCard.querySelector('.conversation-table').outerHTML}
+        </div>
+        <div style="
+          background: #f0f9ff;
+          padding: 20px;
+          border-radius: 8px;
+          border: 1px solid #3b82f6;
+        ">
+          <h3 style="margin: 0 0 15px 0; color: #1e40af; font-size: 18px;">📝 AI 피드백</h3>
+          ${feedbackArea.innerHTML}
+        </div>
+      </div>
+    `;
+    
+    // 임시 컨테이너를 DOM에 추가
+    document.body.appendChild(tempContainer);
+    
+    // 이미지로 변환
+    const canvas = await html2canvas(tempContainer, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      width: 1200,
+      height: tempContainer.scrollHeight,
+      useCORS: true,
+      allowTaint: true
+    });
+    
+    // 임시 컨테이너 제거
+    document.body.removeChild(tempContainer);
+
+    // PDF 생성 (가로 방향)
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'landscape', // 가로 방향
+      unit: 'px',
+      format: [canvas.width, canvas.height]
+    });
+
+    // 이미지를 PDF에 추가
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+
+    // PDF 다운로드
+    const timestamp = new Date().toISOString().split('T')[0];
+    pdf.save(`피드백_${timestamp}.pdf`);
+
+    Swal.fire({
+      icon: 'success',
+      title: '다운로드 완료!',
+      text: '피드백이 가로로 넓은 PDF로 저장되었습니다.',
+      timer: 2000,
+      showConfirmButton: false
+    });
+
+  } catch (error) {
+    console.error('PDF 다운로드 실패:', error);
+    Swal.fire({
+      icon: 'error',
+      title: '다운로드 실패',
+      text: 'PDF 생성 중 오류가 발생했습니다.'
+    });
+  }
+};

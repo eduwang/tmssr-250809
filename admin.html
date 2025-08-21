@@ -72,7 +72,7 @@
     <!-- ✏️ 시나리오 에디터 (초기에는 숨김 처리) -->
     <div class="scenario-editor hidden">
       <h2>
-        📘 page1 시나리오 설정
+        📘 시나리오 설정
         <button id="new-scenario-btn" class="btn" type="button">새로 입력</button>
       </h2>
 
@@ -82,12 +82,13 @@
       <label for="scenario-text">문제 상황 설명:</label><br />
       <textarea id="scenario-text" rows="4" placeholder="문제 상황 텍스트를 입력하세요..."></textarea>
 
-      <h3>🗨️ 초기 대화 입력</h3>
-      <div id="starter-conversation-list"></div>
-      <div class="chat-input-section">
-        <input type="text" id="starter-speaker" placeholder="이름 (예: 교사, 민수)" />
-        <input type="text" id="starter-message" placeholder="대화 내용" />
-        <button id="add-starter-btn" class="btn">➕ 추가</button>
+      <div class="form-group">
+        <h3>🗨️ 초기 대화 입력</h3>
+        <div id="starter-conversation-table"></div>
+        <div class="table-controls">
+          <button id="add-row-btn" class="btn">➕ 행 추가</button>
+          <button id="delete-row-btn" class="btn">➖ 행 삭제</button>
+        </div>
       </div>
       <div class="scenario-button-group">
         <button id="save-scenario-btn" class="btn">💾 저장하기</button>
